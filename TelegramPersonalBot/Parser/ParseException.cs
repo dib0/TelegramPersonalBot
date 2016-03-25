@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace TelegramPersonalBot.Parser
 {
     [System.Serializable]
-    class ParseException : Exception
+    public class ParseException : Exception
     {
         public ParseException() { }
         public ParseException(string message) : base(message) { }

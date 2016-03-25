@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TelegramPersonalBot.Parser
 {
-    interface IExpression
+    public interface IExpression
     {
         void SetContext(Context c);
         void SetParameters(List<string> e);

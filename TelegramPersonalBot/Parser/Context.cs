@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TelegramPersonalBot.Parser
 {
-    class Context
+    public class Context
     {
         #region Public properties
         public string Input

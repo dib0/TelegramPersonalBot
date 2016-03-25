@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Configuration;
 
 namespace TelegramPersonalBot.Parser
 {
@@ -11,6 +12,8 @@ namespace TelegramPersonalBot.Parser
     {
         #region Private properties
         private Context myContext;
+
+        private static List<Type> expressionTypes = new List<Type>();
         #endregion
 
         #region Constructor
@@ -27,6 +30,12 @@ namespace TelegramPersonalBot.Parser
 
             if (expr[0].StartsWith("/"))
                 expr[0] = expr[0].Remove(0, 1);
+            if (expr[expr.Count - 1].EndsWith("!"))
+                expr[expr.Count - 1] = expr[expr.Count - 1].Remove(expr[expr.Count - 1].Length -1 , 1);
+            if (expr[expr.Count - 1].EndsWith("?"))
+                expr[expr.Count - 1] = expr[expr.Count - 1].Remove(expr[expr.Count - 1].Length - 1, 1);
+            if (expr[expr.Count - 1].EndsWith("."))
+                expr[expr.Count - 1] = expr[expr.Count - 1].Remove(expr[expr.Count - 1].Length - 1, 1);
 
             IExpression e = Parser.FindExpression(expr[0]);
             expr.RemoveAt(0);
@@ -44,11 +53,33 @@ namespace TelegramPersonalBot.Parser
         #region Private methods
         internal static List<Type> GetExpressions()
         {
-            List<Type> result = new List<Type>();
+            if (expressionTypes.Count() == 0)
+            {
+                List<Type> classes = Assembly.GetExecutingAssembly().GetTypes().Where(t => String.Equals(t.Namespace, "TelegramPersonalBot.Parser.Expressions", StringComparison.Ordinal)).ToList();
+                SelectExpressionsFromTypes(classes, expressionTypes);
+                AddExternalExpressions(expressionTypes);
+            }
 
-            List<Type> classes = Assembly.GetExecutingAssembly().GetTypes().Where(t => String.Equals(t.Namespace, "TelegramPersonalBot.Parser.Expressions", StringComparison.Ordinal)).ToList();
+            return expressionTypes;
+        }
+
+        private static void AddExternalExpressions(List<Type> result)
+        {
+            string assemblyName = ConfigurationManager.AppSettings["ExpressionAssembly"];
+
+            if (!string.IsNullOrEmpty(assemblyName))
+            {
+                Assembly asm = Assembly.Load(assemblyName);
+
+                List<Type> classes = asm.GetTypes().ToList();
+                SelectExpressionsFromTypes(classes, result);
+            }
+        }
+
+        private static void SelectExpressionsFromTypes(List<Type> classes, List<Type> result)
+        {
             if (classes == null || classes.Count() == 0)
-                return result;
+                return;
 
             foreach (Type t in classes)
             {
@@ -58,8 +89,6 @@ namespace TelegramPersonalBot.Parser
                 if (inType != null)
                     result.Add(t);
             }
-
-            return result;
         }
 
         internal static IExpression FindExpression(string name)
