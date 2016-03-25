@@ -9,6 +9,9 @@ using NetTelegramBotApi;
 using NetTelegramBotApi.Requests;
 using NetTelegramBotApi.Types;
 using TelegramPersonalBot.Parser;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace TelegramPersonalBot
 {
@@ -30,7 +33,10 @@ namespace TelegramPersonalBot
             Console.WriteLine("Starting your bot...");
             Console.WriteLine();
 
-            // Start the TElegram bot
+            // Accepting all certificates
+            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => { return true; });
+
+            // Start the Telegram bot
             var t = Task.Run(() => RunBot());
 
             // Handle ctrl-c
@@ -38,11 +44,8 @@ namespace TelegramPersonalBot
                 stopMe = true;
             };
 
-            stopMe = false;
-            while (!stopMe)
-            {
-                Thread.Sleep(100);
-            }
+            if ((int) t.Status < 5)
+                t.Wait();
         }
         #endregion
 
@@ -66,75 +69,82 @@ namespace TelegramPersonalBot
 
         private static void RunBot()
         {
-            bot = new TelegramBot(accessToken);
-
-            var me = bot.MakeRequestAsync(new GetMe()).Result;
-            if (me == null)
+            try
             {
-                Console.WriteLine("GetMe() FAILED. Do you forget to add your AccessToken to the config?");
-                stopMe = true;
-                return;
-            }
-            Console.WriteLine("{0} (@{1}) connected!", me.FirstName, me.Username);
+                bot = new TelegramBot(accessToken);
 
-            Console.WriteLine();
-            Console.WriteLine("Find @{0} in Telegram and send a message.", me.Username);
-            Console.WriteLine("(Press ctrl-c to quit)");
-            Console.WriteLine();
-
-            long offset = 0;
-            while (!stopMe)
-            {
-                var updates = bot.MakeRequestAsync(new GetUpdates() { Offset = offset }).Result;
-                if (updates != null)
+                var me = bot.MakeRequestAsync(new GetMe()).Result;
+                if (me == null)
                 {
-                    foreach (var update in updates)
+                    Console.WriteLine("GetMe() FAILED. Do you forget to add your AccessToken to the config?");
+                    stopMe = true;
+                    return;
+                }
+                Console.WriteLine("{0} (@{1}) connected!", me.FirstName, me.Username);
+
+                Console.WriteLine();
+                Console.WriteLine("Find @{0} in Telegram and send a message.", me.Username);
+                Console.WriteLine("(Press ctrl-c to quit)");
+                Console.WriteLine();
+
+                long offset = 0;
+                while (!stopMe)
+                {
+                    var updates = bot.MakeRequestAsync(new GetUpdates() { Offset = offset }).Result;
+                    if (updates != null)
                     {
-                        offset = update.UpdateId + 1; // Update offset
-
-                        // Authorize users
-                        if (filterUsers && !IsUserAllowed(update.Message.From.Username))
+                        foreach (var update in updates)
                         {
-                            SendReplyMessage("I'm sorry. You are not authorized.", update.Message);
-                            continue;
-                        }
+                            offset = update.UpdateId + 1; // Update offset
 
-                        // Ignore empty messaged
-                        if (update.Message == null)
-                        {
-                            continue;
-                        }
-
-
-                        // Parse the command
-                        try
-                        {
-                            Context c = new Context(update.Message.Text);
-                            Parser.Parser p = new Parser.Parser(c);
-                            IExpression exp = p.Parse();
-                            if (exp == null)
+                            // Authorize users
+                            if (filterUsers && !IsUserAllowed(update.Message.From.Username))
                             {
-                                SendReplyMessage("I'm sorry. I do not understand '" + update.Message.Text + "'.", update.Message);
+                                SendReplyMessage("I'm sorry. You are not authorized.", update.Message);
                                 continue;
                             }
 
-                            exp.Execute();
-
-                            if (c.Output)
+                            // Ignore empty messaged
+                            if (update.Message == null)
                             {
-                                // return ok or the message
-                                if (string.IsNullOrEmpty(c.Message))
-                                    SendReplyMessage("I've done your bidding, my master.", update.Message);
-                                else
-                                    SendReplyMessage(c.Message, update.Message);
+                                continue;
                             }
-                        }
-                        catch (ParseException)
-                        {
-                            SendReplyMessage("I'm sorry. I didn't understand what you are trying to tell me. Please try again or request '/help' or 'help'.", update.Message);
+
+
+                            // Parse the command
+                            try
+                            {
+                                Context c = new Context(update.Message.Text);
+                                Parser.Parser p = new Parser.Parser(c);
+                                IExpression exp = p.Parse();
+                                if (exp == null)
+                                {
+                                    SendReplyMessage("I'm sorry. I do not understand '" + update.Message.Text + "'.", update.Message);
+                                    continue;
+                                }
+
+                                exp.Execute();
+
+                                if (c.Output)
+                                {
+                                    // return ok or the message
+                                    if (string.IsNullOrEmpty(c.Message))
+                                        SendReplyMessage("I've done your bidding, my master.", update.Message);
+                                    else
+                                        SendReplyMessage(c.Message, update.Message);
+                                }
+                            }
+                            catch (ParseException)
+                            {
+                                SendReplyMessage("I'm sorry. I didn't understand what you are trying to tell me. Please try again or request '/help' or 'help'.", update.Message);
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unexpected error: ", e.Message);
             }
         }
 
@@ -151,6 +161,13 @@ namespace TelegramPersonalBot
                 ParseMode = SendMessage.ParseModeEnum.Markdown
             }).Wait();
 
+        }
+        #endregion
+
+        #region Certificate callback
+        private static bool RemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
         }
         #endregion
     }
