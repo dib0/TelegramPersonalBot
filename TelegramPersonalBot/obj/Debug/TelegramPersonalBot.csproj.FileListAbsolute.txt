@@ -1,0 +1,10 @@
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\bin\Debug\TelegramPersonalBot.exe.config
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\bin\Debug\TelegramPersonalBot.exe
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\bin\Debug\TelegramPersonalBot.pdb
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\bin\Debug\NetTelegramBotApi.dll
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\bin\Debug\Newtonsoft.Json.dll
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\bin\Debug\NetTelegramBotApi.xml
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\bin\Debug\Newtonsoft.Json.xml
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\obj\Debug\TelegramPersonalBot.exe
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\obj\Debug\TelegramPersonalBot.pdb
+C:\Source\TelegramPersonalBot\TelegramPersonalBot\obj\Debug\TelegramPersonalBot.csprojResolveAssemblyReference.cache
