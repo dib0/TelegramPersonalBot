@@ -1,1 +1,0 @@
-C:\Source\TelegramBot\TelegramBot\bin\Debug\TelegramBot.exe.config
