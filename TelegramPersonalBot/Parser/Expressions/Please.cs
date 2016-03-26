@@ -22,7 +22,10 @@ namespace TelegramPersonalBot.Parser.Expressions
                     if (expr.Length > 0)
                         expr += " ";
 
-                    expr += s;
+                    if (s.Contains(" "))
+                        expr += "\"" + s + "\"";
+                    else
+                        expr += s;
                 }
             }
         }
@@ -48,8 +51,8 @@ namespace TelegramPersonalBot.Parser.Expressions
             {
                 myContext.Message = "I'm sorry. I do not understand '" + expr + "'.";
             }
-
-            exp.Execute();
+            else
+                exp.Execute();
 
             if (c.Output)
                 myContext.Message = c.Message;

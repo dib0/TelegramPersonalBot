@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Configuration;
+using System.Text.RegularExpressions;
 
 namespace TelegramPersonalBot.Parser
 {
-    internal class Parser
+    public class Parser
     {
         #region Private properties
         private Context myContext;
@@ -25,7 +26,7 @@ namespace TelegramPersonalBot.Parser
         #region Public methods
         public IExpression Parse()
         {
-            List<string> expr = myContext.Input.Split(' ').ToList();
+            List<string> expr = Split(myContext.Input);
 
             if (expr[0].StartsWith("/"))
                 expr[0] = expr[0].Remove(0, 1);
@@ -50,6 +51,17 @@ namespace TelegramPersonalBot.Parser
         #endregion
 
         #region Private methods
+        private List<string> Split(string input)
+        {
+            RegexOptions options = RegexOptions.None;
+            Regex regex = new Regex(@"((""((?<token>.*?)(?<!\\)"")|(?<token>[\w]+))(\s)*)", options);
+            var result = (from Match m in regex.Matches(input)
+                          where m.Groups["token"].Success
+                          select m.Groups["token"].Value).ToList();
+
+            return result;
+        }
+
         internal static List<Type> GetExpressions()
         {
             if (expressionTypes.Count() == 0)
