@@ -21,6 +21,7 @@ namespace TelegramPersonalBot
         private static bool stopMe = false;
         private static bool filterUsers = false;
         private static string accessToken;
+        private static bool acceptAllCertificates;
         private static List<string> usernames = new List<string>();
         private static TelegramBot bot;
         #endregion
@@ -34,7 +35,8 @@ namespace TelegramPersonalBot
             Console.WriteLine();
 
             // Accepting all certificates
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => { return true; });
+            if (acceptAllCertificates)
+                ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => { return true; });
 
             // Start the Telegram bot
             var t = Task.Run(() => RunBot());
@@ -52,10 +54,12 @@ namespace TelegramPersonalBot
         #region Private methods
         public static void HandleConfig()
         {
-            // Handle config
             accessToken = ConfigurationManager.AppSettings["AccessToken"];
             if (!bool.TryParse(ConfigurationManager.AppSettings["FilterUsers"], out filterUsers))
                 filterUsers = false;
+
+            if (!bool.TryParse(ConfigurationManager.AppSettings["AcceptAllCertificates"], out acceptAllCertificates))
+                acceptAllCertificates = false;
 
             if (filterUsers)
             {
