@@ -142,6 +142,10 @@ namespace TelegramPersonalBot
                             {
                                 SendReplyMessage("I'm sorry. I didn't understand what you are trying to tell me. Please try again or request '/help' or 'help'.", update.Message);
                             }
+                            catch (Exception)
+                            {
+                                SendReplyMessage("I'm sorry. I didn't understand what you are trying to tell me. Please try again or request '/help' or 'help'.", update.Message);
+                            }
                         }
                     }
                 }
